@@ -10,6 +10,7 @@ export interface FuelSharingCreateInput {
   avgKmPerDay: number;
   fuelCostPerKm: number;
   notes?: string | null;
+  isReceived?: boolean;
 }
 
 export class FuelSharingRepository {
@@ -50,6 +51,7 @@ export class FuelSharingRepository {
         avg_km_per_day: input.avgKmPerDay,
         fuel_cost_per_km: input.fuelCostPerKm,
         notes: input.notes ?? null,
+        is_received: input.isReceived ?? false,
       })
       .select("*")
       .single();
@@ -68,6 +70,7 @@ export class FuelSharingRepository {
         ...(input.avgKmPerDay !== undefined ? { avg_km_per_day: input.avgKmPerDay } : {}),
         ...(input.fuelCostPerKm !== undefined ? { fuel_cost_per_km: input.fuelCostPerKm } : {}),
         ...(input.notes !== undefined ? { notes: input.notes } : {}),
+        ...(input.isReceived !== undefined ? { is_received: input.isReceived } : {}),
       })
       .eq("user_id", this.userId)
       .eq("id", id)

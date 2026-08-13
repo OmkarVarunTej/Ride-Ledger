@@ -9,6 +9,8 @@ export interface SettingsUpdateInput {
   fuelPrice?: number | null;
   avgKmPerDay?: number | null;
   defaultMonthlyIncome?: number | null;
+  initialBalance?: number | null;
+  initialBalanceAdjustment?: number | null;
   fuelSharingRule?: Record<string, unknown>;
   chainServiceIntervalKm?: number;
   theme?: "dark" | "light";
@@ -38,6 +40,8 @@ export class SettingsRepository {
         ...(input.fuelPrice !== undefined ? { fuel_price: input.fuelPrice } : {}),
         ...(input.avgKmPerDay !== undefined ? { avg_km_per_day: input.avgKmPerDay } : {}),
         ...(input.defaultMonthlyIncome !== undefined ? { default_monthly_income: input.defaultMonthlyIncome } : {}),
+        ...(input.initialBalance !== undefined ? { initial_balance: input.initialBalance } : {}),
+        ...(input.initialBalanceAdjustment !== undefined ? { initial_balance_adjustment: input.initialBalanceAdjustment } : {}),
         ...(input.fuelSharingRule !== undefined ? { fuel_sharing_rule: input.fuelSharingRule } : {}),
         ...(input.chainServiceIntervalKm !== undefined ? { chain_service_interval_km: input.chainServiceIntervalKm } : {}),
         ...(input.theme !== undefined ? { theme: input.theme } : {}),

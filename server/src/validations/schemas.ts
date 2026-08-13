@@ -54,6 +54,7 @@ export const fuelSharingCreateSchema = z.object({
   avgKmPerDay: z.number().min(0),
   fuelCostPerKm: z.number().min(0),
   notes: z.string().max(2000).optional().nullable(),
+  isReceived: z.boolean().optional(),
 });
 
 export const fuelSharingUpdateSchema = fuelSharingCreateSchema.partial().omit({ monthId: true });
@@ -77,7 +78,20 @@ export const settingsUpdateSchema = z.object({
   fuelPrice: z.number().min(0).optional().nullable(),
   avgKmPerDay: z.number().min(0).optional().nullable(),
   defaultMonthlyIncome: z.number().min(0).optional().nullable(),
+  initialBalance: z.number().optional().nullable(),
+  initialBalanceAdjustment: z.number().optional().nullable(),
   fuelSharingRule: z.record(z.unknown()).optional(),
   chainServiceIntervalKm: z.number().gt(0).optional(),
   theme: z.enum(["dark", "light"]).optional(),
 });
+
+export const moneyToReceiveCreateSchema = z.object({
+  monthId: z.string().uuid(),
+  person: z.string().min(1).max(120),
+  amount: z.number().min(0),
+  description: z.string().max(2000).optional().nullable(),
+  date: z.string().date(),
+  isReceived: z.boolean().optional(),
+});
+
+export const moneyToReceiveUpdateSchema = moneyToReceiveCreateSchema.partial().omit({ monthId: true });

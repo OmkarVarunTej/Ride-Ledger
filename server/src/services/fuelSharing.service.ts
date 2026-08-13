@@ -44,10 +44,10 @@ export class FuelSharingService {
     return rows.map(computeFuelSharing);
   }
 
-  /** Total Person2 reimbursement owed for a month — feeds directly into the ledger. */
+  /** Total Person2 reimbursement owed for a month — feeds into the ledger when received. */
   async person2ReimbursementForMonth(monthId: string): Promise<number> {
     const results = await this.listByMonth(monthId);
-    return results.reduce((sum, r) => sum + r.person2Fuel, 0);
+    return results.filter((r) => r.is_received).reduce((sum, r) => sum + r.person2Fuel, 0);
   }
 
   async create(input: FuelSharingCreateInput): Promise<FuelSharingResult> {

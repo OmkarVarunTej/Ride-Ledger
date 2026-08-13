@@ -61,6 +61,7 @@ export interface FuelSharingRow {
   avg_km_per_day: number;
   fuel_cost_per_km: number;
   notes: string | null;
+  is_received: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -87,9 +88,24 @@ export interface UserSettingsRow {
   fuel_price: number | null;
   avg_km_per_day: number | null;
   default_monthly_income: number | null;
+  initial_balance: number;
+  initial_balance_adjustment: number;
   fuel_sharing_rule: Record<string, unknown>;
   chain_service_interval_km: number;
   theme: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MoneyToReceiveRow {
+  id: string;
+  user_id: string;
+  month_id: string;
+  person: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  is_received: boolean;
   created_at: string;
   updated_at: string;
 }
