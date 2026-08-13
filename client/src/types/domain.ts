@@ -77,6 +77,7 @@ export interface FuelSharingEntry {
   avg_km_per_day: number;
   fuel_cost_per_km: number;
   notes: string | null;
+  is_received: boolean;
   totalKm: number;
   fuelCost: number;
   costPerDay: number;
@@ -84,6 +85,16 @@ export interface FuelSharingEntry {
   remainingDays: number;
   person1Fuel: number;
   person2Fuel: number;
+}
+
+export interface MoneyToReceiveEntry {
+  id: string;
+  month_id: string;
+  person: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  is_received: boolean;
 }
 
 export interface MaintenanceEntry {
@@ -124,6 +135,7 @@ export interface UserSettings {
   fuel_price: number | null;
   avg_km_per_day: number | null;
   default_monthly_income: number | null;
+  initial_balance: number;
   fuel_sharing_rule: Record<string, unknown>;
   chain_service_interval_km: number;
   theme: string;

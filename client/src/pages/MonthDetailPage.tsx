@@ -9,8 +9,9 @@ import { formatCurrency, MONTH_NAMES, cn } from "@/lib/utils";
 import { IncomeTab } from "@/components/months/IncomeTab";
 import { ExpensesTab } from "@/components/months/ExpensesTab";
 import { FuelSharingTab } from "@/components/months/FuelSharingTab";
+import { MoneyToReceiveTab } from "@/components/months/MoneyToReceiveTab";
 
-const TABS = ["Income", "Expenses", "Fuel Sharing"] as const;
+const TABS = ["Income", "Expenses", "Fuel Sharing", "Money to Receive"] as const;
 
 export function MonthDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -76,6 +77,7 @@ export function MonthDetailPage() {
           {tab === "Income" && <IncomeTab monthId={id} />}
           {tab === "Expenses" && <ExpensesTab monthId={id} />}
           {tab === "Fuel Sharing" && <FuelSharingTab monthId={id} />}
+          {tab === "Money to Receive" && <MoneyToReceiveTab monthId={id} />}
         </>
       )}
     </div>

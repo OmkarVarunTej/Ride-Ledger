@@ -20,6 +20,7 @@ export function SettingsPage() {
     fuelPrice: "",
     avgKmPerDay: "",
     defaultMonthlyIncome: "",
+    initialBalance: "",
     chainServiceIntervalKm: "500",
   });
 
@@ -32,6 +33,7 @@ export function SettingsPage() {
       fuelPrice: data.fuel_price != null ? String(data.fuel_price) : "",
       avgKmPerDay: data.avg_km_per_day != null ? String(data.avg_km_per_day) : "",
       defaultMonthlyIncome: data.default_monthly_income != null ? String(data.default_monthly_income) : "",
+      initialBalance: data.initial_balance != null ? String(data.initial_balance) : "0",
       chainServiceIntervalKm: String(data.chain_service_interval_km ?? 500),
     });
   }, [data]);
@@ -45,12 +47,15 @@ export function SettingsPage() {
         fuelPrice: form.fuelPrice ? Number(form.fuelPrice) : null,
         avgKmPerDay: form.avgKmPerDay ? Number(form.avgKmPerDay) : null,
         defaultMonthlyIncome: form.defaultMonthlyIncome ? Number(form.defaultMonthlyIncome) : null,
+        initialBalance: form.initialBalance ? Number(form.initialBalance) : 0,
         chainServiceIntervalKm: Number(form.chainServiceIntervalKm),
       }),
     onSuccess: () => {
       toast.success("Settings saved — this only affects future calculations");
       queryClient.invalidateQueries({ queryKey: ["settings"] });
       queryClient.invalidateQueries({ queryKey: ["chain-tracker"] });
+      queryClient.invalidateQueries({ queryKey: ["months"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Could not save settings"),
   });
@@ -84,6 +89,10 @@ export function SettingsPage() {
             <div>
               <Label>Currency</Label>
               <Input value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} />
+            </div>
+            <div>
+              <Label>Initial Opening Balance</Label>
+              <Input type="number" step="0.01" value={form.initialBalance} onChange={(e) => setForm({ ...form, initialBalance: e.target.value })} />
             </div>
             <div>
               <Label>Default fuel price</Label>

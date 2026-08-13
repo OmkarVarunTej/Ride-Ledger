@@ -1,12 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, CheckSquare, Square } from "lucide-react";
 import { api } from "@/lib/api";
 import type { FuelSharingEntry } from "@/types/domain";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, Input, Skeleton } from "@/components/ui/primitives";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatNumber, cn } from "@/lib/utils";
 
 export function FuelSharingTab({ monthId }: { monthId: string }) {
   const queryClient = useQueryClient();
@@ -45,6 +45,13 @@ export function FuelSharingTab({ monthId }: { monthId: string }) {
       setVehicleDays(""); setPerson1Days(""); setPerson2Days(""); setAvgKmPerDay(""); setFuelCostPerKm("");
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : "Could not add entry"),
+  });
+
+  const toggleReceived = useMutation({
+    mutationFn: ({ id, isReceived }: { id: string; isReceived: boolean }) =>
+      api.patch(`/months/${monthId}/fuel-sharing/${id}`, { isReceived }),
+    onSuccess: () => invalidate(),
+    onError: (err) => toast.error(err instanceof Error ? err.message : "Could not update status"),
   });
 
   const remove = useMutation({
@@ -117,9 +124,24 @@ export function FuelSharingTab({ monthId }: { monthId: string }) {
                   <p className="text-sm text-ink-muted">
                     {formatNumber(entry.vehicle_days)} vehicle days · {formatNumber(entry.avg_km_per_day)} km/day · {formatCurrency(entry.fuel_cost_per_km)}/km
                   </p>
-                  <button onClick={() => remove.mutate(entry.id)} className="text-ink-faint hover:text-danger transition-colors">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleReceived.mutate({ id: entry.id, isReceived: !entry.is_received })}
+                      className={cn(
+                        "flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium border transition-colors cursor-pointer",
+                        entry.is_received
+                          ? "bg-ledger/15 border-ledger/40 text-ledger hover:bg-ledger/25"
+                          : "bg-white/[0.04] border-base-border text-ink-muted hover:border-fuel/40 hover:text-ink"
+                      )}
+                    >
+                      {entry.is_received ? <CheckSquare className="h-3.5 w-3.5 text-ledger" /> : <Square className="h-3.5 w-3.5 text-ink-faint" />}
+                      Received
+                    </button>
+                    <button onClick={() => remove.mutate(entry.id)} className="text-ink-faint hover:text-danger transition-colors">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-3 text-sm">
                   <div>
@@ -132,7 +154,9 @@ export function FuelSharingTab({ monthId }: { monthId: string }) {
                   </div>
                   <div>
                     <p className="text-ink-faint text-xs mb-0.5">Person2 reimbursement</p>
-                    <p className="tabular font-medium text-ledger">{formatCurrency(entry.person2Fuel)}</p>
+                    <p className={cn("tabular font-medium", entry.is_received ? "text-ledger" : "text-ink-muted")}>
+                      {formatCurrency(entry.person2Fuel)} {entry.is_received ? "(Received)" : "(Pending)"}
+                    </p>
                   </div>
                 </div>
               </CardContent>
