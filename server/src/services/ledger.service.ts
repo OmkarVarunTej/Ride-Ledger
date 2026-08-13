@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { MonthsRepository } from "../repositories/months.repository.js";
 import { IncomeRepository } from "../repositories/income.repository.js";
 import { ExpensesRepository } from "../repositories/expenses.repository.js";
+import { SettingsRepository } from "../repositories/settings.repository.js";
+import { MoneyToReceiveRepository } from "../repositories/moneyToReceive.repository.js";
 import { FuelService } from "./fuel.service.js";
 import { FuelSharingService } from "./fuelSharing.service.js";
 import type { MonthlyLedger } from "../types/domain.js";
@@ -10,12 +12,10 @@ import { NotFoundError } from "../utils/errors.js";
 /**
  * The ledger is never persisted. Opening balance, closing balance, and every
  * total are recomputed from raw rows (income, expenses, fillups, sharing
- * entries) every time this service runs. That is what makes "edit August ->
- * September through December recalculate automatically" true by construction:
- * there is no stale cached number anywhere to go out of sync.
+ * entries, received receivables) every time this service runs.
  *
- * Closing = Opening + Income - FuelCost + Person2Reimbursement - OtherExpenses
- * Opening(month N) = Closing(month N-1), Opening(first month) = 0
+ * Closing = Opening + Income - FuelCost + Person2Reimbursement + ReceivedReceivables - OtherExpenses
+ * Opening(month N) = Closing(month N-1), Opening(first month) = initial_balance (from user_settings)
  */
 export class LedgerService {
   private readonly months: MonthsRepository;
@@ -23,6 +23,8 @@ export class LedgerService {
   private readonly expenses: ExpensesRepository;
   private readonly fuel: FuelService;
   private readonly sharing: FuelSharingService;
+  private readonly moneyToReceive: MoneyToReceiveRepository;
+  private readonly settings: SettingsRepository;
 
   constructor(db: SupabaseClient, userId: string) {
     this.months = new MonthsRepository(db, userId);
@@ -30,21 +32,30 @@ export class LedgerService {
     this.expenses = new ExpensesRepository(db, userId);
     this.fuel = new FuelService(db, userId);
     this.sharing = new FuelSharingService(db, userId);
+    this.moneyToReceive = new MoneyToReceiveRepository(db, userId);
+    this.settings = new SettingsRepository(db, userId);
   }
 
   /** Computes the ledger for every month the user has created, in chronological order. */
   async computeAllLedgers(): Promise<MonthlyLedger[]> {
-    const months = await this.months.list(); // already sorted year, month ascending
+    const [months, settingsRow] = await Promise.all([
+      this.months.list(), // already sorted year, month ascending
+      this.settings.get().catch(() => null),
+    ]);
     const ledgers: MonthlyLedger[] = [];
-    let runningOpeningBalance = 0;
+    let runningOpeningBalance = settingsRow?.initial_balance ? Number(settingsRow.initial_balance) : 0;
 
     for (const monthRow of months) {
-      const [incomeTotal, fuelSummary, reimbursement, expenseTotal] = await Promise.all([
-        this.income.sumByMonth(monthRow.id),
-        this.fuel.monthlySummary(monthRow.year, monthRow.month),
-        this.sharing.person2ReimbursementForMonth(monthRow.id),
-        this.expenses.sumByMonth(monthRow.id),
-      ]);
+      const [incomeTotal, fuelSummary, person2SharingReimbursement, moneyToReceiveReimbursement, expenseTotal] =
+        await Promise.all([
+          this.income.sumByMonth(monthRow.id),
+          this.fuel.monthlySummary(monthRow.year, monthRow.month),
+          this.sharing.person2ReimbursementForMonth(monthRow.id),
+          this.moneyToReceive.sumReceivedByMonth(monthRow.id),
+          this.expenses.sumByMonth(monthRow.id),
+        ]);
+
+      const reimbursement = person2SharingReimbursement + moneyToReceiveReimbursement;
 
       const openingBalance = runningOpeningBalance;
       const closingBalance =
