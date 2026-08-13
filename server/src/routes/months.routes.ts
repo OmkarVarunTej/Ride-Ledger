@@ -6,6 +6,7 @@ import { createMonth, deleteMonth, getMonth, listMonths, updateMonth } from "../
 import incomeRoutes from "./income.routes.js";
 import expensesRoutes from "./expenses.routes.js";
 import fuelSharingRoutes from "./fuelSharing.routes.js";
+import moneyToReceiveRouter from "./moneyToReceive.router.js";
 
 const router = Router();
 router.use(requireAuth);
@@ -19,5 +20,6 @@ router.delete("/:id", deleteMonth);
 router.use("/:monthId/income", incomeRoutes);
 router.use("/:monthId/expenses", expensesRoutes);
 router.use("/:monthId/fuel-sharing", fuelSharingRoutes);
+router.use("/:monthId/money-to-receive", moneyToReceiveRouter);
 
 export default router;
